@@ -1418,6 +1418,16 @@ define Device/xiaomi_mi-ra75
 endef
 TARGET_DEVICES += xiaomi_mi-ra75
 
+define Device/xiaomi_rc04
+  $(Device/xiaomi_mi-ra75)
+  DEVICE_VENDOR := Xiaomi
+  DEVICE_MODEL := Mi WiFi Range Extender AC1200
+  DEVICE_VARIANT := RC04
+  DEVICE_PACKAGES := $(filter-out kmod-mt76x2,$(DEVICE_PACKAGES)) kmod-mt7615e kmod-mt7615-firmware kmod-mt7663-firmware-ap
+  SUPPORTED_DEVICES += xiaomi,mira75
+endef
+TARGET_DEVICES += xiaomi_rc04
+
 define Device/yuncore_cpe200
   IMAGE_SIZE := 7872k
   DEVICE_VENDOR := Yuncore

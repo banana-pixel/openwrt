@@ -30,12 +30,16 @@ jobs:
           CONFIG_TARGET_ramips_mt76x8=y
           CONFIG_TARGET_ramips_mt76x8_DEVICE_xiaomi_rc04=y
           CONFIG_PACKAGE_luci=y
+          CONFIG_PACKAGE_wpad-mbedtls=y
+          # CONFIG_PACKAGE_wpad-basic-mbedtls is not set
           EOF
           make defconfig
       - name: Download sources
         run: make download -j8
       - name: Build
         run: make -j$(nproc) || make -j1 V=s
+      - name: Show wpad packages
+        run: grep -h wpad bin/targets/ramips/mt76x8/*.manifest || true
       - uses: actions/upload-artifact@v4
         with:
           name: rc04-firmware

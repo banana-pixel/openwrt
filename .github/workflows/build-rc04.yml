@@ -5,6 +5,10 @@ on:
       branch:
         description: Branch to build
         default: rc04-test
+      full_wpad:
+        description: Use full wpad-mbedtls (mesh, 802.11k/v)
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -30,16 +34,26 @@ jobs:
           CONFIG_TARGET_ramips_mt76x8=y
           CONFIG_TARGET_ramips_mt76x8_DEVICE_xiaomi_rc04=y
           CONFIG_PACKAGE_luci=y
-          CONFIG_PACKAGE_wpad-mbedtls=y
-          # CONFIG_PACKAGE_wpad-basic-mbedtls is not set
           EOF
+          if [ "${{ inputs.full_wpad }}" = "true" ]; then
+            echo "CONFIG_PACKAGE_wpad-mbedtls=y" >> .config
+            echo "# CONFIG_PACKAGE_wpad-basic-mbedtls is not set" >> .config
+          fi
           make defconfig
       - name: Download sources
         run: make download -j8
       - name: Build
         run: make -j$(nproc) || make -j1 V=s
-      - name: Show wpad packages
-        run: grep -h wpad bin/targets/ramips/mt76x8/*.manifest || true
+      - name: Check wpad
+        run: |
+          M=$(ls bin/targets/ramips/mt76x8/*.manifest)
+          grep wpad "$M"
+          if [ "${{ inputs.full_wpad }}" = "true" ]; then
+            grep -q '^wpad-mbedtls ' "$M" || { echo "full wpad missing"; exit 1; }
+            ! grep -q 'wpad-basic' "$M" || { echo "basic wpad present"; exit 1; }
+          else
+            grep -q '^wpad-basic-mbedtls ' "$M" || { echo "default wpad missing"; exit 1; }
+          fi
       - uses: actions/upload-artifact@v4
         with:
           name: rc04-firmware
